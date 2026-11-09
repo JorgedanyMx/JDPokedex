@@ -1,0 +1,412 @@
+/* =====================================================================
+   POKEDEX.CSS — versión comentada
+   =====================================================================
+   CSS describe CÓMO SE VE cada elemento del JSX. Se conecta con el JSX
+   mediante las clases: <div className="lens"> se estiliza aquí con .lens
+
+   Selectores que verás:
+   .a          -> elementos con class="a"
+   .a.b        -> elementos que tienen AMBAS clases (a y b)
+   .a .b       -> elementos .b que estén DENTRO de .a
+   .a:hover    -> .a cuando el mouse está encima (pseudoclase)
+   Cuando dos reglas chocan, gana la más específica (más clases) y, si
+   empatan, la que aparece más abajo.
+   ===================================================================== */
+
+
+/* ---------------------------------------------------------------------
+   VARIABLES (colores reutilizables)
+   :root es el elemento raíz de la página. Lo que declares aquí con --
+   se usa en cualquier parte con var(--nombre). Si quieres cambiar un
+   color en todo el Pokédex, lo cambias solo en este lugar.
+   --------------------------------------------------------------------- */
+:root {
+  --bg: #272822;        /* gris Monokai del fondo de la página */
+  --red: #c8372d;       /* rojo principal del Pokédex */
+  --red-dark: #8f2119;  /* rojo oscuro (sombras y parte baja) */
+  --red-light: #e2574c; /* rojo claro (parte alta, efecto de luz) */
+  --blue: #2f4fbf;      /* azul del botón y de las teclas */
+  --screen: #1b1c18;    /* casi negro de las pantallas */
+  --white: #ececec;     /* blanco del marco de la pantalla */
+  --ink: #111;          /* negro de las barras decorativas */
+}
+
+
+/* ---------------------------------------------------------------------
+   REGLAS GLOBALES
+   --------------------------------------------------------------------- */
+
+/* El asterisco selecciona TODOS los elementos.
+   box-sizing: border-box hace que width/height INCLUYAN el padding y el
+   borde. Sin esto, un elemento de 100px con padding de 10px mediría 120px
+   y todo se desalinea. Es casi un estándar en cualquier proyecto. */
+* { box-sizing: border-box; }
+
+/* El navegador pone un margen de 8px alrededor de la página por defecto;
+   lo quitamos y ponemos el fondo gris Monokai. */
+body { margin: 0; background: var(--bg); }
+
+/* Por defecto los botones tienen borde y padding del navegador, y su
+   fuente no hereda. Los reseteamos para controlarlos nosotros.
+   cursor: pointer muestra la manita al pasar el mouse. */
+button { cursor: pointer; border: 0; padding: 0; font: inherit; }
+
+/* Los botones deshabilitados muestran el cursor de "prohibido". */
+button:disabled { cursor: not-allowed; }
+
+/* :focus-visible aparece cuando navegas con el TECLADO (Tab). Dibuja un
+   contorno verde para saber qué botón está seleccionado. Es importante
+   para accesibilidad. outline-offset lo separa 2px del botón. */
+button:focus-visible { outline: 3px solid #a6e22e; outline-offset: 2px; }
+
+/* Si usas la plantilla de Vite, src/index.css debe tener solo esto. */
+#root { width: 100%; }
+
+
+/* ---------------------------------------------------------------------
+   ESCENARIO: centra todo el Pokédex en la página
+   --------------------------------------------------------------------- */
+.stage {
+  min-height: 100vh;          /* 100vh = 100% del alto de la ventana */
+  display: grid;
+  place-items: center;        /* centra horizontal y verticalmente */
+  padding: 24px 12px;         /* aire arriba/abajo (24) y a los lados (12) */
+  /* Fuente tipo terminal, a juego con las pantallas. Si la primera no
+     existe, el navegador prueba la siguiente (lista de respaldo). */
+  font-family: "Courier New", ui-monospace, monospace;
+}
+
+
+/* ---------------------------------------------------------------------
+   POKEDEX: el contenedor con 3 columnas
+   --------------------------------------------------------------------- */
+.pokedex {
+  /* min() toma el MENOR de los dos valores: nunca más de 1040px, pero en
+     pantallas pequeñas se ajusta al 100% del ancho disponible. */
+  width: min(1040px, 100%);
+
+  display: grid;
+  /* Tres columnas: panel izquierdo | bisagra de 26px | panel derecho.
+     1fr = "una parte del espacio libre". Los dos paneles reciben partes
+     iguales. minmax(0, 1fr) significa "mínimo 0": evita que el contenido
+     largo (la cadena de movimientos) ENSANCHE la columna y rompa el
+     diseño. Este era el bug de la pantalla gris. */
+  grid-template-columns: minmax(0, 1fr) 26px minmax(0, 1fr);
+
+  /* Sombra proyectada siguiendo la forma real del Pokédex. A diferencia
+     de box-shadow, filter: drop-shadow respeta las esquinas redondeadas.
+     Parámetros: desplazamiento-x, desplazamiento-y, desenfoque, color. */
+  filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .55));
+}
+
+
+/* ---------------------------------------------------------------------
+   PANELES (izquierdo y derecho comparten estas reglas)
+   --------------------------------------------------------------------- */
+.panel {
+  /* Degradado diagonal rojo: 160deg es la dirección. Va de rojo claro
+     (arriba) a rojo normal (al 40%) y a rojo oscuro (abajo): simula luz. */
+  background: linear-gradient(160deg, var(--red-light), var(--red) 40%, var(--red-dark));
+
+  /* clamp(mínimo, ideal, máximo): el padding crece con la ventana (3vw =
+     3% del ancho) pero nunca baja de 14px ni pasa de 30px. */
+  padding: clamp(14px, 3vw, 30px);
+
+  /* Flexbox en columna: los hijos se apilan de arriba hacia abajo. */
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2.4vw, 24px);  /* espacio entre los hijos */
+
+  min-height: 560px;
+  min-width: 0;  /* permite que el panel se ENCOJA aunque su contenido sea
+                    largo (complemento del minmax de arriba) */
+}
+
+/* Esquinas redondeadas: arriba-izq, arriba-der, abajo-der, abajo-izq.
+   El panel izquierdo es redondo por fuera y casi recto junto a la bisagra.
+   Usamos .panel.left (y no solo .left) para que NO afecte al botón de la
+   cruceta, que también tiene la clase "left". */
+.panel.left  { border-radius: 18px 4px 4px 22px; }
+.panel.right { border-radius: 4px 18px 22px 4px; justify-content: flex-start; }
+
+/* La bisagra: franja con degradado horizontal oscuro-claro-oscuro que
+   da efecto de cilindro. */
+.hinge { background: linear-gradient(90deg, #6d150f, #a52a21 50%, #6d150f); }
+
+
+/* ---------------------------------------------------------------------
+   PANTALLA (estilo base, la usan 3 pantallas distintas)
+   --------------------------------------------------------------------- */
+.screen {
+  background: var(--screen);
+  border-radius: 6px;
+  /* inset = sombra DENTRO del elemento; da sensación de pantalla hundida. */
+  box-shadow: inset 0 4px 14px #000;
+  color: #a6e22e;   /* texto verde estilo terminal Monokai */
+}
+
+
+/* ---------------------------------------------------------------------
+   CABECERA: lente azul + 3 luces
+   --------------------------------------------------------------------- */
+.top { display: flex; align-items: center; gap: 12px; }
+
+.lens {
+  width: clamp(56px, 9vw, 84px);   /* tamaño adaptable */
+  aspect-ratio: 1;                 /* alto = ancho -> círculo perfecto */
+  border-radius: 50%;              /* 50% convierte el cuadrado en círculo */
+  border: 5px solid var(--white);  /* aro blanco */
+  /* Estado APAGADO: degradado radial gris azulado. "circle at 32% 30%"
+     coloca el punto de luz arriba a la izquierda como un reflejo. */
+  background: radial-gradient(circle at 32% 30%, #5a6577, #1d2430 70%);
+  /* Al cambiar de apagado a encendido, la transición es suave (.3s). */
+  transition: background .3s, box-shadow .3s;
+}
+
+/* Estado ENCENDIDO: se aplica cuando React agrega la clase "on". */
+.lens.on {
+  background: radial-gradient(circle at 32% 30%, #bfe6ff, #3b82f6 45%, #1b3f9e 100%);
+  /* Resplandor azul alrededor: box-shadow sin "inset" va hacia afuera. */
+  box-shadow: 0 0 22px 6px rgba(80, 150, 255, .85);
+}
+
+/* Parpadeo mientras carga (clase "blink" puesta por React). Repite la
+   animación "blink" cada .5s, infinitamente, yendo y viniendo (alternate). */
+.lens.blink { animation: blink .5s infinite alternate; }
+
+/* @keyframes define la animación. Solo ponemos el estado final ("to");
+   el inicial es el estilo normal. brightness(1.5) = 50% más brillante. */
+@keyframes blink { to { filter: brightness(1.5); } }
+
+/* Luces pequeñas: círculos de 12px con sombra interna para dar volumen. */
+.led { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 -2px 3px rgba(0,0,0,.35); }
+.led.r { background: #f0443a; }  /* rojo */
+.led.y { background: #f5c935; }  /* amarillo */
+.led.g { background: #4cc05a; }  /* verde */
+
+/* Separa un poco la primera luz del lente. :first-of-type = el primer
+   <span> dentro de .top. */
+.top .led:first-of-type { margin-left: 6px; }
+
+
+/* ---------------------------------------------------------------------
+   PANTALLA PRINCIPAL: marco blanco + pantalla negra
+   --------------------------------------------------------------------- */
+.frame {
+  background: var(--white);
+  /* Esquina inferior izquierda más redonda (30px), como en la serie. */
+  border-radius: 10px 10px 10px 30px;
+  padding: clamp(14px, 3vw, 28px);   /* grosor del marco blanco */
+  box-shadow: inset 0 -3px 0 #bbb;   /* línea gris interna abajo: relieve */
+}
+
+.screen.main {
+  aspect-ratio: 4 / 3;       /* proporción fija: ancho 4, alto 3 */
+  display: grid;
+  place-items: center;       /* centra la imagen o el mensaje */
+  overflow: hidden;          /* recorta lo que se salga de la pantalla */
+}
+
+/* La imagen del Pokémon ocupa el 88% de la pantalla.
+   object-fit: contain la ajusta completa SIN deformarla. */
+.screen.main img { width: 88%; height: 88%; object-fit: contain; image-rendering: auto; }
+
+.msg { margin: 0; color: #75715e; }            /* "Cargando…" en gris */
+.msg.err { color: #f92672; padding: 0 12px; text-align: center; }  /* error en rosa Monokai */
+
+
+/* ---------------------------------------------------------------------
+   CONTROLES (parte baja del panel izquierdo)
+   --------------------------------------------------------------------- */
+/* margin-top: auto empuja los controles hasta el fondo del panel (en
+   flexbox, un margen automático absorbe todo el espacio libre). */
+.controls { display: flex; flex-direction: column; gap: 14px; margin-top: auto; }
+
+.row-top { display: flex; align-items: center; gap: 14px; }
+
+/* Botón circular negro con degradado radial para parecer una esfera. */
+.round {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #444, #000);
+}
+
+/* Pastillas roja y azul: rectángulo con esquinas muy redondeadas. */
+.pill { width: 54px; height: 16px; border-radius: 10px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.35); }
+.pill.red  { background: #e0463b; }
+.pill.blue { background: var(--blue); }
+
+/* Fila inferior: pantalla del nombre a la izquierda y cruceta a la
+   derecha. space-between los separa a los extremos. */
+.row-bottom { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+
+.screen.name {
+  flex: 1;                         /* ocupa todo el ancho que sobre */
+  min-height: 52px;
+  display: flex;
+  align-items: center;             /* centra el texto en vertical */
+  justify-content: center;         /* ...y en horizontal */
+  padding: 6px 10px;
+  background: #5f7a58;             /* verde grisáceo tipo LCD de Game Boy */
+  color: #1b2a18;
+  box-shadow: inset 0 3px 8px rgba(0,0,0,.5);
+  text-transform: capitalize;      /* "bulbasaur" -> "Bulbasaur" */
+  font-weight: 700;                /* negritas */
+  text-align: center;
+  overflow-wrap: anywhere;         /* si el nombre es muy largo, parte la palabra */
+}
+
+
+/* ---------------------------------------------------------------------
+   CRUCETA (D-pad): una cuadrícula de 3x3 en forma de cruz
+   --------------------------------------------------------------------- */
+.dpad {
+  /* Variable LOCAL: --s es el tamaño de cada celda, entre 30 y 40px. */
+  --s: clamp(30px, 6vw, 40px);
+  display: grid;
+  /* "grid-template: filas / columnas": 3 filas y 3 columnas de --s. */
+  grid-template: repeat(3, var(--s)) / repeat(3, var(--s));
+  flex-shrink: 0;   /* evita que la cruceta se encoja en pantallas chicas */
+}
+
+/* Los 4 botones y el centro comparten el mismo color negro. */
+.dpad button, .dpad .center { background: #1a1a1a; box-shadow: inset 0 -3px 0 #000; }
+
+/* grid-area: fila / columna. Colocamos cada botón en su celda:
+   arriba = fila 1 col 2, izquierda = fila 2 col 1, etc.
+   El border-radius redondea solo la esquina EXTERIOR de cada brazo. */
+.dpad .up     { grid-area: 1 / 2; border-radius: 6px 6px 0 0; }
+.dpad .left   { grid-area: 2 / 1; border-radius: 6px 0 0 6px; }
+.dpad .center { grid-area: 2 / 2; }
+.dpad .right  { grid-area: 2 / 3; border-radius: 0 6px 6px 0; }
+.dpad .down   { grid-area: 3 / 2; border-radius: 0 0 6px 6px; }
+
+/* :active = mientras se mantiene presionado; se aclara un poco. */
+.dpad button:active { background: #3a3a3a; }
+
+
+/* ---------------------------------------------------------------------
+   PANEL DERECHO: pantalla de movimientos
+   --------------------------------------------------------------------- */
+.screen.moves {
+  height: 92px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;       /* oculta el texto que sale por los lados */
+  background: #101010;
+}
+
+/* .track es la "ventana" por donde pasa el texto.
+   white-space: nowrap impide que el texto salte de línea: queda en UNA
+   sola línea muy larga, que luego desplazamos. */
+.track { width: 100%; overflow: hidden; white-space: nowrap; text-transform: capitalize; }
+
+.track span {
+  display: inline-block;   /* necesario para poder animarlo con transform */
+  padding-left: 16px;
+  text-shadow: 0 0 6px rgba(166,226,46,.6);   /* brillo verde en las letras */
+}
+
+/* Cuando se ve la cadena completa (clase "scroll"), se anima.
+   90s = duración de una vuelta completa; linear = velocidad constante;
+   infinite = sin fin. Sin padding para que el bucle empalme perfecto. */
+.track span.scroll { animation: marquee 90s linear infinite; padding-left: 0; }
+
+/* translateX(-50%) mueve el texto a la izquierda la MITAD de su ancho.
+   Como en el JSX el texto está duplicado, al terminar la vuelta la copia
+   queda exactamente donde estaba el original: el bucle no se nota. */
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+
+/* ---------------------------------------------------------------------
+   LOS 10 BOTONES AZULES
+   --------------------------------------------------------------------- */
+.grid {
+  background: #1f2d86;       /* fondo azul oscuro detrás de las teclas */
+  border-radius: 8px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);   /* 5 columnas iguales -> 2 filas para 10 botones */
+  gap: 8px;
+  box-shadow: inset 0 3px 10px rgba(0,0,0,.5);
+}
+
+.key {
+  aspect-ratio: 1.3;                          /* un poco más anchos que altos */
+  border-radius: 6px;
+  background: linear-gradient(#4a6cf0, #2f4fbf);   /* brillo arriba, más oscuro abajo */
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.3);
+}
+
+/* Botón sin movimiento: apagado y semitransparente. */
+.key:disabled { background: #2b3978; box-shadow: none; opacity: .65; }
+
+/* Botón seleccionado: verde Monokai. */
+.key.sel { background: #a6e22e; }
+
+
+/* ---------------------------------------------------------------------
+   ZONA DECORATIVA (sin función)
+   Una cuadrícula de 4 columnas x 2 filas. Cada pieza se coloca con
+   grid-area: fila-inicio / columna-inicio / fila-fin / columna-fin
+   (la línea final NO se incluye: "2 / 1 / 3 / 2" ocupa fila 2, col 1).
+   --------------------------------------------------------------------- */
+.deco {
+  margin-top: auto;     /* se pega al fondo del panel */
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 40px;   /* la última columna mide 40px fijos */
+  grid-template-rows: auto auto;
+  gap: 12px 10px;                              /* 12px entre filas, 10px entre columnas */
+  align-items: center;
+}
+
+/* Botón blanco grande: fila 1, columna 1. */
+.white-btn { grid-area: 1 / 1; height: 40px; border-radius: 6px; background: var(--white); box-shadow: inset 0 -4px 0 #bbb; }
+
+/* Dos rayitas oscuras: fila 1, columnas 2 y 3.
+   nth-of-type(n) selecciona el span número n dentro de .deco
+   (white-btn=1, dash=2, dash=3, dark-bar=4, dark-bar wide=5, yellow=6). */
+.dash { height: 10px; border-radius: 6px; background: #2a1210; }
+.dash:nth-of-type(2) { grid-area: 1 / 2; }
+.dash:nth-of-type(3) { grid-area: 1 / 3; }
+
+/* Botón amarillo: ocupa las filas 1 y 2 de la columna 4 y se centra. */
+.yellow { grid-area: 1 / 4 / 3 / 5; justify-self: center; width: 22px; height: 22px; border-radius: 50%; background: #f5c935; }
+
+/* Dos barras negras en la fila 2: la primera en la columna 1 y la
+   ancha ("wide") ocupa las columnas 2 y 3. */
+.dark-bar { grid-area: 2 / 1; height: 34px; border-radius: 6px; background: var(--ink); }
+.dark-bar.wide { grid-area: 2 / 2 / 3 / 4; }
+
+
+/* ---------------------------------------------------------------------
+   RESPONSIVO
+   @media aplica las reglas de adentro SOLO si se cumple la condición.
+   Con max-width: 760px, solo en pantallas de 760px o menos (celulares).
+   Aquí el Pokédex pasa de verse "abierto" (lado a lado) a apilarse en
+   vertical: panel izquierdo, bisagra horizontal y panel derecho.
+   --------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .pokedex {
+    /* Una sola columna y tres filas: panel / bisagra de 18px / panel. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 18px auto;
+    max-width: 440px;       /* en celular se ve más a modo de Pokédex alto */
+  }
+  /* Redondeamos las esquinas de otra forma, porque ahora un panel está
+     arriba y el otro abajo. min-height: 0 quita el alto mínimo de 560px. */
+  .panel.left  { border-radius: 18px 18px 4px 4px; min-height: 0; }
+  .panel.right { border-radius: 4px 4px 22px 22px; min-height: 0; }
+  /* La bisagra ahora es horizontal, así que el degradado va de arriba
+     hacia abajo (sin ángulo) en vez de izquierda-derecha. */
+  .hinge { background: linear-gradient(#6d150f, #a52a21 50%, #6d150f); }
+}
+
+
+/* ---------------------------------------------------------------------
+   ACCESIBILIDAD: movimiento reducido
+   Si la persona activó "reducir movimiento" en su sistema (por mareos o
+   sensibilidad), desactivamos las animaciones.
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .track span.scroll, .lens.blink { animation: none; }
+}
